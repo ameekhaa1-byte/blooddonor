@@ -14,6 +14,11 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+import {
+    getAuth,
+    signInAnonymously
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
 
 /* =====================================
    FIREBASE CONFIGURATION
@@ -44,6 +49,8 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 
+const auth = getAuth(app);
+
 const donorsCollection = collection(db, "donors");
 
 
@@ -66,12 +73,45 @@ function getDonors() {
 
 
 /* =====================================
+   FIREBASE ANONYMOUS LOGIN
+===================================== */
+
+async function startFirebase() {
+
+    try {
+
+        await signInAnonymously(auth);
+
+        console.log("Firebase authentication successful.");
+
+        startDonorListener();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Firebase authentication error:",
+            error
+        );
+
+        alert(
+            "Could not connect to BloodConnect. Please try again."
+        );
+
+    }
+
+}
+
+
+/* =====================================
    LISTEN FOR DONOR CHANGES
 ===================================== */
 
 function startDonorListener() {
 
     onSnapshot(
+
         donorsCollection,
 
         function(snapshot) {
@@ -123,6 +163,8 @@ function startDonorListener() {
             }
 
 
+            /* Refresh Find Donor page */
+
             if (
                 activePage &&
                 activePage.id === "find"
@@ -159,6 +201,7 @@ function startDonorListener() {
             );
 
         }
+
     );
 
 }
@@ -327,10 +370,7 @@ function findDonors() {
    DISPLAY DONORS
 ===================================== */
 
-function displayDonors(
-    group,
-    container
-) {
+function displayDonors(group, container) {
 
     if (!container) {
 
@@ -357,13 +397,10 @@ function displayDonors(
             <div class="results-title">
 
                 <h2>
-
                     Donors with
-
                     <span>
                         ${escapeHTML(group)}
                     </span>
-
                 </h2>
 
             </div>
@@ -375,28 +412,20 @@ function displayDonors(
                     🩸
                 </div>
 
-
                 <h3>
                     No registered donors yet
                 </h3>
 
-
                 <p>
-
                     There are currently no donors
                     registered with blood group
                     ${escapeHTML(group)}.
-
                 </p>
-
 
                 <br>
 
-
                 <button
-
                     class="primary-btn"
-
                     onclick="showPage('register')">
 
                     Become a Donor
@@ -426,12 +455,9 @@ function displayDonors(
 
             </h2>
 
-
             <p>
-
                 ${matchingDonors.length}
                 registered donor(s)
-
             </p>
 
         </div>
@@ -444,7 +470,6 @@ function displayDonors(
 
     matchingDonors.forEach(function(donor) {
 
-
         const recentClass =
             donor.recentDonation
                 ? "active"
@@ -453,9 +478,7 @@ function displayDonors(
 
         const recentText =
             donor.recentDonation
-
                 ? "✓ Donated Recently"
-
                 : "Mark as Donated Recently";
 
 
@@ -463,9 +486,7 @@ function displayDonors(
 
             <div class="donor-card">
 
-
                 <div class="donor-top">
-
 
                     <div class="donor-name">
 
@@ -475,7 +496,6 @@ function displayDonors(
 
                     </div>
 
-
                     <div class="blood-tag">
 
                         ${escapeHTML(
@@ -484,12 +504,10 @@ function displayDonors(
 
                     </div>
 
-
                 </div>
 
 
                 <div class="donor-info">
-
 
                     <div>
 
@@ -550,7 +568,6 @@ function displayDonors(
 
                     }
 
-
                 </div>
 
 
@@ -579,11 +596,8 @@ function displayDonors(
 
                 <div class="donor-actions">
 
-
                     <a
-
                         class="call-btn"
-
                         href="tel:${escapeHTML(
                             donor.phone || ""
                         )}">
@@ -606,9 +620,7 @@ function displayDonors(
 
                     </button>
 
-
                 </div>
-
 
             </div>
 
@@ -629,10 +641,7 @@ function displayDonors(
    TOGGLE RECENT DONATION
 ===================================== */
 
-async function toggleRecent(
-    id,
-    group
-) {
+async function toggleRecent(id, group) {
 
     const donor =
         getDonors().find(function(item) {
@@ -697,13 +706,11 @@ const donorForm =
 
 if (donorForm) {
 
-
     donorForm.addEventListener(
 
         "submit",
 
         async function(event) {
-
 
             event.preventDefault();
 
@@ -748,15 +755,10 @@ if (donorForm) {
 
 
             if (
-
                 !name ||
-
                 !phone ||
-
                 !bloodGroup ||
-
                 !location
-
             ) {
 
                 alert(
@@ -770,29 +772,22 @@ if (donorForm) {
 
             const newDonor = {
 
-                name:
-                    name,
+                name: name,
 
-                phone:
-                    phone,
+                phone: phone,
 
-                bloodGroup:
-                    bloodGroup,
+                bloodGroup: bloodGroup,
 
-                location:
-                    location,
+                location: location,
 
-                lastDonation:
-                    lastDonation,
+                lastDonation: lastDonation,
 
-                recentDonation:
-                    recentDonation
+                recentDonation: recentDonation
 
             };
 
 
             try {
-
 
                 await addDoc(
 
@@ -807,10 +802,8 @@ if (donorForm) {
 
 
                 alert(
-
                     "Registration successful! " +
                     "Your donor details have been added."
-
                 );
 
 
@@ -818,11 +811,9 @@ if (donorForm) {
                     bloodGroup
                 );
 
-
             }
 
             catch (error) {
-
 
                 console.error(
                     "Error adding donor:",
@@ -831,10 +822,8 @@ if (donorForm) {
 
 
                 alert(
-
                     "Registration failed. " +
                     "Please try again."
-
                 );
 
             }
@@ -877,7 +866,6 @@ function updateStatistics() {
 
 
     if (availableCount) {
-
 
         const available =
             donorList.filter(
@@ -926,7 +914,6 @@ function updateBloodGroupCounts() {
 
     groups.forEach(function(group) {
 
-
         const count =
             donorList.filter(
                 function(donor) {
@@ -939,16 +926,8 @@ function updateBloodGroupCounts() {
 
         const safeGroup =
             group
-
-                .replace(
-                    "+",
-                    "-positive"
-                )
-
-                .replace(
-                    "-",
-                    "-negative"
-                );
+                .replace("+", "-positive")
+                .replace("-", "-negative");
 
 
         const element =
@@ -965,11 +944,8 @@ function updateBloodGroupCounts() {
 
                 (
                     count === 1
-
                         ? " Donor"
-
                         : " Donors"
-
                 );
 
         }
@@ -987,30 +963,15 @@ function escapeHTML(value) {
 
     return String(value)
 
-        .replace(
-            /&/g,
-            "&amp;"
-        )
+        .replace(/&/g, "&amp;")
 
-        .replace(
-            /</g,
-            "&lt;"
-        )
+        .replace(/</g, "&lt;")
 
-        .replace(
-            />/g,
-            "&gt;"
-        )
+        .replace(/>/g, "&gt;")
 
-        .replace(
-            /"/g,
-            "&quot;"
-        )
+        .replace(/"/g, "&quot;")
 
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+        .replace(/'/g, "&#039;");
 
 }
 
@@ -1055,7 +1016,7 @@ document.addEventListener(
 
         showPage("home");
 
-        startDonorListener();
+        startFirebase();
 
     }
 
