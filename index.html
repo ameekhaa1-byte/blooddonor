@@ -2,141 +2,573 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            <title>BloodConnect | Local Blood Donors</title>
+    <title>BloodConnect | Local Blood Donor Community</title>
 
-                <link rel="stylesheet" href="style.css">
-                </head>
+    <link rel="stylesheet" href="style.css">
+</head>
 
-                <body>
+<body>
 
-                <header>
-                    <div class="logo">🩸 BloodConnect</div>
+<!-- ================= NAVBAR ================= -->
 
-                        <nav>
-                                <a href="#home">Home</a>
-                                        <a href="#donors">Donors</a>
-                                                <a href="#register">Become a Donor</a>
-                                                    </nav>
-                                                    </header>
+<header class="navbar">
 
+    <div class="logo" onclick="showPage('home')">
+        <span class="drop">🩸</span>
+        BloodConnect
+    </div>
 
-                                                    <!-- HOME -->
+    <nav>
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('find')">Find a Donor</button>
+        <button onclick="showPage('register')">Become a Donor</button>
+        <button onclick="showPage('groups')">Blood Groups</button>
+    </nav>
 
-                                                    <section class="hero" id="home">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
 
-                                                        <div class="hero-text">
-
-                                                                <p class="small-title">LOCAL BLOOD DONOR COMMUNITY</p>
-
-                                                                        <h1>
-                                                                                    Every Drop<br>
-                                                                                                <span>Can Save a Life.</span>
-                                                                                                        </h1>
-
-                                                                                                                <p>
-                                                                                                                            Find blood donors around your locality quickly
-                                                                                                                                        and connect with people willing to help.
-                                                                                                                                                </p>
-
-                                                                                                                                                        <div class="hero-buttons">
-                                                                                                                                                                    <button onclick="showDonors()">
-                                                                                                                                                                                    Find a Donor
-                                                                                                                                                                                                </button>
-
-                                                                                                                                                                                                            <button class="outline"
-                                                                                                                                                                                                                                onclick="showRegistration()">
-                                                                                                                                                                                                                                                Become a Donor
-                                                                                                                                                                                                                                                            </button>
-                                                                                                                                                                                                                                                                    </div>
-
-                                                                                                                                                                                                                                                                        </div>
-
-                                                                                                                                                                                                                                                                            <div class="blood-icon">
-                                                                                                                                                                                                                                                                                    🩸
-                                                                                                                                                                                                                                                                                        </div>
-
-                                                                                                                                                                                                                                                                                        </section>
+</header>
 
 
-                                                                                                                                                                                                                                                                                        <!-- STATISTICS -->
+<!-- ================= MOBILE MENU ================= -->
 
-                                                                                                                                                                                                                                                                                        <section class="stats">
+<div class="mobile-menu" id="mobileMenu">
 
-                                                                                                                                                                                                                                                                                            <div class="stat-card">
-                                                                                                                                                                                                                                                                                                    <h2 id="totalDonors">0</h2>
-                                                                                                                                                                                                                                                                                                            <p>Registered Donors</p>
-                                                                                                                                                                                                                                                                                                                </div>
+    <button onclick="showPage('home'); closeMenu()">Home</button>
 
-                                                                                                                                                                                                                                                                                                                    <div class="stat-card">
-                                                                                                                                                                                                                                                                                                                            <h2 id="availableDonors">0</h2>
-                                                                                                                                                                                                                                                                                                                                    <p>Available Donors</p>
-                                                                                                                                                                                                                                                                                                                                        </div>
+    <button onclick="showPage('find'); closeMenu()">
+        Find a Donor
+    </button>
 
-                                                                                                                                                                                                                                                                                                                                            <div class="stat-card">
-                                                                                                                                                                                                                                                                                                                                                    <h2 id="recentDonors">0</h2>
-                                                                                                                                                                                                                                                                                                                                                            <p>Recently Donated</p>
-                                                                                                                                                                                                                                                                                                                                                                </div>
+    <button onclick="showPage('register'); closeMenu()">
+        Become a Donor
+    </button>
 
-                                                                                                                                                                                                                                                                                                                                                                </section>
+    <button onclick="showPage('groups'); closeMenu()">
+        Blood Groups
+    </button>
 
-
-                                                                                                                                                                                                                                                                                                                                                                <!-- BLOOD GROUPS -->
-
-                                                                                                                                                                                                                                                                                                                                                                <section class="blood-section" id="donors">
-
-                                                                                                                                                                                                                                                                                                                                                                    <p class="section-label">FIND A DONOR</p>
-
-                                                                                                                                                                                                                                                                                                                                                                        <h2>Choose a Blood Group</h2>
-
-                                                                                                                                                                                                                                                                                                                                                                            <div class="blood-groups">
-
-                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('A+')">A+</button>
-                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('A-')">A-</button>
-                                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('B+')">B+</button>
-                                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('B-')">B-</button>
-                                                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('AB+')">AB+</button>
-                                                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('AB-')">AB-</button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('O+')">O+</button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('O-')">O-</button>
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                </section>
+</div>
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-- DONOR LIST -->
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                <section class="donor-section">
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    <h2 id="groupTitle">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            Available Donors
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                </h2>
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div id="donorList" class="donor-list"></div>
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </section>
+<main>
 
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!-- REGISTRATION -->
+<!-- ================= HOME PAGE ================= -->
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <section class="registration" id="register">
+<section id="home" class="page active">
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="form-container">
+    <div class="hero">
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p class="section-label">JOIN THE COMMUNITY</p>
+        <p class="small-title">
+            LOCAL BLOOD DONOR COMMUNITY
+        </p>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <h2>Become a Blood Donor</h2>
+        <h1>
+            Every Drop<br>
+            <span>Can Save a Life.</span>
+        </h1>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Register your details so people in your locality
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        can contact you when blood is needed.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </p>
+        <p class="hero-description">
+            Find blood donors around your locality quickly
+            and connect with people willing to help.
+        </p>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <form id="donorForm">
+        <div class="hero-buttons">
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    type="text"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    id="name"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    placeholder
+            <button class="primary-btn"
+                    onclick="showPage('find')">
+                Find a Donor
+            </button>
+
+            <button class="secondary-btn"
+                    onclick="showPage('register')">
+                Become a Donor
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- STATISTICS -->
+
+    <div class="stats-container">
+
+        <div class="stat-card">
+
+            <div class="stat-number" id="donorCount">
+                0
+            </div>
+
+            <p>Registered Donors</p>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-number" id="availableCount">
+                0
+            </div>
+
+            <p>Available Donors</p>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-number" id="groupCount">
+                8
+            </div>
+
+            <p>Blood Groups</p>
+
+        </div>
+
+    </div>
+
+
+    <!-- BLOOD GROUP QUICK ACCESS -->
+
+    <div class="home-section">
+
+        <p class="section-label">
+            FIND BY BLOOD GROUP
+        </p>
+
+        <h2>
+            Choose a Blood Group
+        </h2>
+
+        <p class="section-description">
+            Select a blood group to view registered donors.
+        </p>
+
+        <div class="blood-grid">
+
+            <button class="blood-button" onclick="openGroup('A+')">
+                A+
+            </button>
+
+            <button class="blood-button" onclick="openGroup('A-')">
+                A-
+            </button>
+
+            <button class="blood-button" onclick="openGroup('B+')">
+                B+
+            </button>
+
+            <button class="blood-button" onclick="openGroup('B-')">
+                B-
+            </button>
+
+            <button class="blood-button" onclick="openGroup('AB+')">
+                AB+
+            </button>
+
+            <button class="blood-button" onclick="openGroup('AB-')">
+                AB-
+            </button>
+
+            <button class="blood-button" onclick="openGroup('O+')">
+                O+
+            </button>
+
+            <button class="blood-button" onclick="openGroup('O-')">
+                O-
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= FIND DONOR PAGE ================= -->
+
+<section id="find" class="page">
+
+    <div class="page-header">
+
+        <p class="section-label">
+            FIND HELP
+        </p>
+
+        <h1>
+            Find a Blood Donor
+        </h1>
+
+        <p>
+            Select the required blood group to see registered donors.
+        </p>
+
+    </div>
+
+
+    <div class="search-card">
+
+        <label for="findBloodGroup">
+            Select Blood Group
+        </label>
+
+        <select id="findBloodGroup">
+
+            <option value="">
+                -- Select Blood Group --
+            </option>
+
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+
+        </select>
+
+        <button class="primary-btn"
+                onclick="findDonors()">
+            Find Donors
+        </button>
+
+    </div>
+
+
+    <div id="findResults" class="results-area">
+
+        <div class="empty-state">
+            <div class="empty-icon">🩸</div>
+
+            <h3>Select a blood group</h3>
+
+            <p>
+                Donors matching your selected blood group
+                will appear here.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= REGISTER PAGE ================= -->
+
+<section id="register" class="page">
+
+    <div class="page-header">
+
+        <p class="section-label">
+            JOIN THE COMMUNITY
+        </p>
+
+        <h1>
+            Become a Donor
+        </h1>
+
+        <p>
+            Register your details so people can find you
+            when they need your blood group.
+        </p>
+
+    </div>
+
+
+    <div class="form-card">
+
+        <form id="donorForm">
+
+            <div class="form-group">
+
+                <label for="name">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    placeholder="Enter your full name"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="phone">
+                        Phone Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="phone"
+                        placeholder="Enter phone number"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="bloodGroup">
+                        Blood Group
+                    </label>
+
+                    <select id="bloodGroup" required>
+
+                        <option value="">
+                            Select
+                        </option>
+
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="location">
+                    City / Locality
+                </label>
+
+                <input
+                    type="text"
+                    id="location"
+                    placeholder="Example: Kozhikode"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="lastDonation">
+                    Last Donation Date
+                    <span class="optional">(Optional)</span>
+                </label>
+
+                <input
+                    type="date"
+                    id="lastDonation"
+                >
+
+            </div>
+
+
+            <div class="checkbox-box">
+
+                <input
+                    type="checkbox"
+                    id="recentDonation"
+                >
+
+                <label for="recentDonation">
+                    I have donated recently
+                </label>
+
+            </div>
+
+
+            <div class="form-note">
+
+                <strong>Note:</strong>
+                Donated-recently is a self-reported status.
+                Check applicable medical/blood-bank guidance
+                before donating again.
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-btn submit-btn">
+
+                Register as Donor
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================= BLOOD GROUP PAGE ================= -->
+
+<section id="groups" class="page">
+
+    <div class="page-header">
+
+        <p class="section-label">
+            DONOR DIRECTORY
+        </p>
+
+        <h1>
+            Blood Groups
+        </h1>
+
+        <p>
+            Choose a blood group to view its registered donors.
+        </p>
+
+    </div>
+
+
+    <div class="blood-grid large">
+
+        <button class="blood-card" onclick="openGroup('A+')">
+
+            <span>A+</span>
+
+            <small id="count-A-positive">
+                0 Donors
+            </small>
+
+        </button>
+
+
+        <button class="blood-card" onclick="openGroup('A-')">
+
+            <span>A-</span>
+
+            <small id="count-A-negative">
+                0 Donors
+            </small>
+
+        </button>
+
+
+        <button class="blood-card" onclick="openGroup('B+')">
+
+            <span>B+</span>
+
+            <small id="count-B-positive">
+                0 Donors
+            </small>
+
+        </button>
+
+
+        <button class="blood-card" onclick="openGroup('B-')">
+
+            <span>B-</span>
+
+            <small id="count-B-negative">
+                0 Donors
+            </small>
+
+        </button>
+
+
+        <button class="blood-card" onclick="openGroup('AB+')">
+
+            <span>AB+</span>
+
+            <small id="count-AB-positive">
+                0 Donors
+            </small>
+
+        </button>
+
+
+        <button class="blood-card" onclick="openGroup('AB-')">
+
+            <span>AB-</span>
+
+            <small id="count-AB-negative">
+                0 Donors
+            </small>
+
+        </button>
+
+
+        <button class="blood-card" onclick="openGroup('O+')">
+
+            <span>O+</span>
+
+            <small id="count-O-positive">
+                0 Donors
+            </small>
+
+        </button>
+
+
+        <button class="blood-card" onclick="openGroup('O-')">
+
+            <span>O-</span>
+
+            <small id="count-O-negative">
+                0 Donors
+            </small>
+
+        </button>
+
+    </div>
+
+
+    <div id="groupResults" class="results-area">
+
+    </div>
+
+</section>
+
+
+</main>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    <div class="footer-logo">
+        🩸 BloodConnect
+    </div>
+
+    <p>
+        Connecting blood donors with people who need help.
+    </p>
+
+    <p class="copyright">
+        © 2026 BloodConnect
+    </p>
+
+</footer>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
