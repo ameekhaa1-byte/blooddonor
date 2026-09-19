@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+            <title>BloodConnect | Local Blood Donors</title>
+
+                <link rel="stylesheet" href="style.css">
+                </head>
+
+                <body>
+
+                <header>
+                    <div class="logo">🩸 BloodConnect</div>
+
+                        <nav>
+                                <a href="#home">Home</a>
+                                        <a href="#donors">Donors</a>
+                                                <a href="#register">Become a Donor</a>
+                                                    </nav>
+                                                    </header>
+
+
+                                                    <!-- HOME -->
+
+                                                    <section class="hero" id="home">
+
+                                                        <div class="hero-text">
+
+                                                                <p class="small-title">LOCAL BLOOD DONOR COMMUNITY</p>
+
+                                                                        <h1>
+                                                                                    Every Drop<br>
+                                                                                                <span>Can Save a Life.</span>
+                                                                                                        </h1>
+
+                                                                                                                <p>
+                                                                                                                            Find blood donors around your locality quickly
+                                                                                                                                        and connect with people willing to help.
+                                                                                                                                                </p>
+
+                                                                                                                                                        <div class="hero-buttons">
+                                                                                                                                                                    <button onclick="showDonors()">
+                                                                                                                                                                                    Find a Donor
+                                                                                                                                                                                                </button>
+
+                                                                                                                                                                                                            <button class="outline"
+                                                                                                                                                                                                                                onclick="showRegistration()">
+                                                                                                                                                                                                                                                Become a Donor
+                                                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                                                                    </div>
+
+                                                                                                                                                                                                                                                                        </div>
+
+                                                                                                                                                                                                                                                                            <div class="blood-icon">
+                                                                                                                                                                                                                                                                                    🩸
+                                                                                                                                                                                                                                                                                        </div>
+
+                                                                                                                                                                                                                                                                                        </section>
+
+
+                                                                                                                                                                                                                                                                                        <!-- STATISTICS -->
+
+                                                                                                                                                                                                                                                                                        <section class="stats">
+
+                                                                                                                                                                                                                                                                                            <div class="stat-card">
+                                                                                                                                                                                                                                                                                                    <h2 id="totalDonors">0</h2>
+                                                                                                                                                                                                                                                                                                            <p>Registered Donors</p>
+                                                                                                                                                                                                                                                                                                                </div>
+
+                                                                                                                                                                                                                                                                                                                    <div class="stat-card">
+                                                                                                                                                                                                                                                                                                                            <h2 id="availableDonors">0</h2>
+                                                                                                                                                                                                                                                                                                                                    <p>Available Donors</p>
+                                                                                                                                                                                                                                                                                                                                        </div>
+
+                                                                                                                                                                                                                                                                                                                                            <div class="stat-card">
+                                                                                                                                                                                                                                                                                                                                                    <h2 id="recentDonors">0</h2>
+                                                                                                                                                                                                                                                                                                                                                            <p>Recently Donated</p>
+                                                                                                                                                                                                                                                                                                                                                                </div>
+
+                                                                                                                                                                                                                                                                                                                                                                </section>
+
+
+                                                                                                                                                                                                                                                                                                                                                                <!-- BLOOD GROUPS -->
+
+                                                                                                                                                                                                                                                                                                                                                                <section class="blood-section" id="donors">
+
+                                                                                                                                                                                                                                                                                                                                                                    <p class="section-label">FIND A DONOR</p>
+
+                                                                                                                                                                                                                                                                                                                                                                        <h2>Choose a Blood Group</h2>
+
+                                                                                                                                                                                                                                                                                                                                                                            <div class="blood-groups">
+
+                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('A+')">A+</button>
+                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('A-')">A-</button>
+                                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('B+')">B+</button>
+                                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('B-')">B-</button>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('AB+')">AB+</button>
+                                                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('AB-')">AB-</button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                    <button onclick="showBloodGroup('O+')">O+</button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                            <button onclick="showBloodGroup('O-')">O-</button>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                </section>
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-- DONOR LIST -->
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                <section class="donor-section">
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    <h2 id="groupTitle">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            Available Donors
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                </h2>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div id="donorList" class="donor-list"></div>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </section>
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!-- REGISTRATION -->
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <section class="registration" id="register">
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="form-container">
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p class="section-label">JOIN THE COMMUNITY</p>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <h2>Become a Blood Donor</h2>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Register your details so people in your locality
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        can contact you when blood is needed.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </p>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <form id="donorForm">
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    type="text"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    id="name"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    placeholder
