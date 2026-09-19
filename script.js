@@ -1,37 +1,164 @@
 /* =====================================
    BLOODCONNECT JAVASCRIPT
+   FIREBASE + FIRESTORE VERSION
 ===================================== */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    updateDoc,
+    doc,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 
 /* =====================================
-   GET DONORS FROM BROWSER STORAGE
+   FIREBASE CONFIGURATION
+===================================== */
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyCqXUHDHykloy51n8QTzpI59dRsAUjYbfE",
+
+    authDomain: "bloodconnect-d72ee.firebaseapp.com",
+
+    projectId: "bloodconnect-d72ee",
+
+    storageBucket: "bloodconnect-d72ee.firebasestorage.app",
+
+    messagingSenderId: "877909200543",
+
+    appId: "1:877909200543:web:5ec235063ebaa2c3a65caa"
+
+};
+
+
+/* =====================================
+   INITIALIZE FIREBASE
+===================================== */
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+const donorsCollection = collection(db, "donors");
+
+
+/* =====================================
+   LOCAL MEMORY OF FIRESTORE DATA
+===================================== */
+
+let donors = [];
+
+
+/* =====================================
+   GET DONORS
 ===================================== */
 
 function getDonors() {
 
-    const data = localStorage.getItem("bloodConnectDonors");
+    return donors;
 
-    if (!data) {
-        return [];
-    }
-
-    try {
-        return JSON.parse(data);
-    } catch (error) {
-        return [];
-    }
 }
 
 
 /* =====================================
-   SAVE DONORS
+   LISTEN FOR DONOR CHANGES
 ===================================== */
 
-function saveDonors(donors) {
+function startDonorListener() {
 
-    localStorage.setItem(
-        "bloodConnectDonors",
-        JSON.stringify(donors)
+    onSnapshot(
+        donorsCollection,
+
+        function(snapshot) {
+
+            donors = [];
+
+            snapshot.forEach(function(document) {
+
+                donors.push({
+
+                    id: document.id,
+
+                    ...document.data()
+
+                });
+
+            });
+
+
+            updateStatistics();
+
+
+            /* Refresh currently displayed group */
+
+            const activePage =
+                document.querySelector(".page.active");
+
+
+            if (
+                activePage &&
+                activePage.id === "groups"
+            ) {
+
+                const results =
+                    document.getElementById("groupResults");
+
+                if (
+                    results &&
+                    results.dataset.group
+                ) {
+
+                    displayDonors(
+                        results.dataset.group,
+                        results
+                    );
+
+                }
+
+            }
+
+
+            if (
+                activePage &&
+                activePage.id === "find"
+            ) {
+
+                const results =
+                    document.getElementById("findResults");
+
+                const select =
+                    document.getElementById("findBloodGroup");
+
+                if (
+                    results &&
+                    select &&
+                    select.value
+                ) {
+
+                    displayDonors(
+                        select.value,
+                        results
+                    );
+
+                }
+
+            }
+
+        },
+
+        function(error) {
+
+            console.error(
+                "Firestore error:",
+                error
+            );
+
+        }
     );
 
 }
@@ -43,7 +170,9 @@ function saveDonors(donors) {
 
 function showPage(pageId) {
 
-    const pages = document.querySelectorAll(".page");
+    const pages =
+        document.querySelectorAll(".page");
+
 
     pages.forEach(function(page) {
 
@@ -55,6 +184,7 @@ function showPage(pageId) {
     const selectedPage =
         document.getElementById(pageId);
 
+
     if (selectedPage) {
 
         selectedPage.classList.add("active");
@@ -62,9 +192,15 @@ function showPage(pageId) {
     }
 
 
+    closeMenu();
+
+
     window.scrollTo({
+
         top: 0,
+
         behavior: "smooth"
+
     });
 
 
@@ -82,7 +218,12 @@ function toggleMenu() {
     const menu =
         document.getElementById("mobileMenu");
 
-    menu.classList.toggle("show");
+
+    if (menu) {
+
+        menu.classList.toggle("show");
+
+    }
 
 }
 
@@ -92,7 +233,12 @@ function closeMenu() {
     const menu =
         document.getElementById("mobileMenu");
 
-    menu.classList.remove("show");
+
+    if (menu) {
+
+        menu.classList.remove("show");
+
+    }
 
 }
 
@@ -105,10 +251,21 @@ function openGroup(group) {
 
     showPage("groups");
 
+
     const results =
         document.getElementById("groupResults");
 
-    displayDonors(group, results);
+
+    if (results) {
+
+        results.dataset.group = group;
+
+        displayDonors(
+            group,
+            results
+        );
+
+    }
 
 }
 
@@ -119,8 +276,13 @@ function openGroup(group) {
 
 function findDonors() {
 
+    const select =
+        document.getElementById("findBloodGroup");
+
+
     const group =
-        document.getElementById("findBloodGroup").value;
+        select.value;
+
 
     const results =
         document.getElementById("findResults");
@@ -129,11 +291,23 @@ function findDonors() {
     if (!group) {
 
         results.innerHTML = `
+
             <div class="empty-state">
-                <div class="empty-icon">🩸</div>
-                <h3>Select a blood group</h3>
-                <p>Please select a blood group first.</p>
+
+                <div class="empty-icon">
+                    🩸
+                </div>
+
+                <h3>
+                    Select a blood group
+                </h3>
+
+                <p>
+                    Please select a blood group first.
+                </p>
+
             </div>
+
         `;
 
         return;
@@ -141,7 +315,10 @@ function findDonors() {
     }
 
 
-    displayDonors(group, results);
+    displayDonors(
+        group,
+        results
+    );
 
 }
 
@@ -150,13 +327,23 @@ function findDonors() {
    DISPLAY DONORS
 ===================================== */
 
-function displayDonors(group, container) {
+function displayDonors(
+    group,
+    container
+) {
 
-    const donors = getDonors();
+    if (!container) {
+
+        return;
+
+    }
+
+
+    container.dataset.group = group;
 
 
     const matchingDonors =
-        donors.filter(function(donor) {
+        getDonors().filter(function(donor) {
 
             return donor.bloodGroup === group;
 
@@ -170,11 +357,17 @@ function displayDonors(group, container) {
             <div class="results-title">
 
                 <h2>
+
                     Donors with
-                    <span>${group}</span>
+
+                    <span>
+                        ${escapeHTML(group)}
+                    </span>
+
                 </h2>
 
             </div>
+
 
             <div class="empty-state">
 
@@ -182,19 +375,28 @@ function displayDonors(group, container) {
                     🩸
                 </div>
 
+
                 <h3>
                     No registered donors yet
                 </h3>
 
+
                 <p>
+
                     There are currently no donors
-                    registered with blood group ${group}.
+                    registered with blood group
+                    ${escapeHTML(group)}.
+
                 </p>
+
 
                 <br>
 
+
                 <button
+
                     class="primary-btn"
+
                     onclick="showPage('register')">
 
                     Become a Donor
@@ -215,16 +417,25 @@ function displayDonors(group, container) {
         <div class="results-title">
 
             <h2>
+
                 Donors with
-                <span>${group}</span>
+
+                <span>
+                    ${escapeHTML(group)}
+                </span>
+
             </h2>
 
+
             <p>
+
                 ${matchingDonors.length}
                 registered donor(s)
+
             </p>
 
         </div>
+
 
         <div class="donor-grid">
 
@@ -233,14 +444,18 @@ function displayDonors(group, container) {
 
     matchingDonors.forEach(function(donor) {
 
+
         const recentClass =
             donor.recentDonation
                 ? "active"
                 : "";
 
+
         const recentText =
             donor.recentDonation
+
                 ? "✓ Donated Recently"
+
                 : "Mark as Donated Recently";
 
 
@@ -248,69 +463,130 @@ function displayDonors(group, container) {
 
             <div class="donor-card">
 
+
                 <div class="donor-top">
 
+
                     <div class="donor-name">
-                        ${escapeHTML(donor.name)}
+
+                        ${escapeHTML(
+                            donor.name || ""
+                        )}
+
                     </div>
 
+
                     <div class="blood-tag">
-                        ${escapeHTML(donor.bloodGroup)}
+
+                        ${escapeHTML(
+                            donor.bloodGroup || ""
+                        )}
+
                     </div>
+
 
                 </div>
 
 
                 <div class="donor-info">
 
-                    <div>
-                        📍
-                        <strong>Location:</strong>
-                        ${escapeHTML(donor.location)}
-                    </div>
 
                     <div>
-                        📞
-                        <strong>Phone:</strong>
-                        ${escapeHTML(donor.phone)}
+
+                        📍
+
+                        <strong>
+                            Location:
+                        </strong>
+
+                        ${escapeHTML(
+                            donor.location || ""
+                        )}
+
                     </div>
+
+
+                    <div>
+
+                        📞
+
+                        <strong>
+                            Phone:
+                        </strong>
+
+                        ${escapeHTML(
+                            donor.phone || ""
+                        )}
+
+                    </div>
+
 
                     ${
                         donor.lastDonation
+
                         ?
+
                         `
+
                         <div>
+
                             📅
-                            <strong>Last donation:</strong>
-                            ${escapeHTML(donor.lastDonation)}
+
+                            <strong>
+                                Last donation:
+                            </strong>
+
+                            ${escapeHTML(
+                                donor.lastDonation
+                            )}
+
                         </div>
+
                         `
+
                         :
+
                         ""
+
                     }
+
 
                 </div>
 
 
                 ${
                     donor.recentDonation
+
                     ?
+
                     `
+
                     <div class="form-note">
+
                         This donor marked themselves
                         as having donated recently.
+
                     </div>
+
                     `
+
                     :
+
                     ""
+
                 }
 
 
                 <div class="donor-actions">
 
+
                     <a
+
                         class="call-btn"
-                        href="tel:${escapeHTML(donor.phone)}">
+
+                        href="tel:${escapeHTML(
+                            donor.phone || ""
+                        )}">
 
                         📞 Call Donor
 
@@ -318,14 +594,21 @@ function displayDonors(group, container) {
 
 
                     <button
+
                         class="recent-btn ${recentClass}"
-                        onclick="toggleRecent('${donor.id}', '${group}')">
+
+                        onclick="toggleRecent(
+                            '${donor.id}',
+                            '${escapeHTML(group)}'
+                        )">
 
                         ${recentText}
 
                     </button>
 
+
                 </div>
+
 
             </div>
 
@@ -346,13 +629,13 @@ function displayDonors(group, container) {
    TOGGLE RECENT DONATION
 ===================================== */
 
-function toggleRecent(id, group) {
-
-    const donors = getDonors();
-
+async function toggleRecent(
+    id,
+    group
+) {
 
     const donor =
-        donors.find(function(item) {
+        getDonors().find(function(item) {
 
             return item.id === id;
 
@@ -360,39 +643,46 @@ function toggleRecent(id, group) {
 
 
     if (!donor) {
+
         return;
-    }
-
-
-    donor.recentDonation =
-        !donor.recentDonation;
-
-
-    saveDonors(donors);
-
-
-    const currentPage =
-        document.querySelector(".page.active");
-
-
-    if (currentPage.id === "groups") {
-
-        displayDonors(
-            group,
-            document.getElementById("groupResults")
-        );
-
-    } else {
-
-        displayDonors(
-            group,
-            document.getElementById("findResults")
-        );
 
     }
 
 
-    updateStatistics();
+    try {
+
+        await updateDoc(
+
+            doc(
+                db,
+                "donors",
+                id
+            ),
+
+            {
+
+                recentDonation:
+                    !donor.recentDonation
+
+            }
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error updating donor:",
+            error
+        );
+
+
+        alert(
+            "Could not update donor status."
+        );
+
+    }
 
 }
 
@@ -401,105 +691,159 @@ function toggleRecent(id, group) {
    REGISTER DONOR
 ===================================== */
 
-document
-    .getElementById("donorForm")
-    .addEventListener("submit", function(event) {
-
-        event.preventDefault();
+const donorForm =
+    document.getElementById("donorForm");
 
 
-        const name =
-            document.getElementById("name").value.trim();
-
-        const phone =
-            document.getElementById("phone").value.trim();
-
-        const bloodGroup =
-            document.getElementById("bloodGroup").value;
-
-        const location =
-            document.getElementById("location").value.trim();
-
-        const lastDonation =
-            document.getElementById("lastDonation").value;
-
-        const recentDonation =
-            document.getElementById("recentDonation").checked;
+if (donorForm) {
 
 
-        if (
-            !name ||
-            !phone ||
-            !bloodGroup ||
-            !location
-        ) {
+    donorForm.addEventListener(
 
-            alert(
-                "Please fill in all required fields."
-            );
+        "submit",
 
-            return;
+        async function(event) {
+
+
+            event.preventDefault();
+
+
+            const name =
+                document
+                    .getElementById("name")
+                    .value
+                    .trim();
+
+
+            const phone =
+                document
+                    .getElementById("phone")
+                    .value
+                    .trim();
+
+
+            const bloodGroup =
+                document
+                    .getElementById("bloodGroup")
+                    .value;
+
+
+            const location =
+                document
+                    .getElementById("location")
+                    .value
+                    .trim();
+
+
+            const lastDonation =
+                document
+                    .getElementById("lastDonation")
+                    .value;
+
+
+            const recentDonation =
+                document
+                    .getElementById("recentDonation")
+                    .checked;
+
+
+            if (
+
+                !name ||
+
+                !phone ||
+
+                !bloodGroup ||
+
+                !location
+
+            ) {
+
+                alert(
+                    "Please fill in all required fields."
+                );
+
+                return;
+
+            }
+
+
+            const newDonor = {
+
+                name:
+                    name,
+
+                phone:
+                    phone,
+
+                bloodGroup:
+                    bloodGroup,
+
+                location:
+                    location,
+
+                lastDonation:
+                    lastDonation,
+
+                recentDonation:
+                    recentDonation
+
+            };
+
+
+            try {
+
+
+                await addDoc(
+
+                    donorsCollection,
+
+                    newDonor
+
+                );
+
+
+                donorForm.reset();
+
+
+                alert(
+
+                    "Registration successful! " +
+                    "Your donor details have been added."
+
+                );
+
+
+                openGroup(
+                    bloodGroup
+                );
+
+
+            }
+
+            catch (error) {
+
+
+                console.error(
+                    "Error adding donor:",
+                    error
+                );
+
+
+                alert(
+
+                    "Registration failed. " +
+                    "Please try again."
+
+                );
+
+            }
 
         }
 
+    );
 
-        const donors = getDonors();
-
-
-        const newDonor = {
-
-            id:
-                Date.now().toString(),
-
-            name:
-                name,
-
-            phone:
-                phone,
-
-            bloodGroup:
-                bloodGroup,
-
-            location:
-                location,
-
-            lastDonation:
-                lastDonation,
-
-            recentDonation:
-                recentDonation
-
-        };
-
-
-        donors.push(newDonor);
-
-
-        saveDonors(donors);
-
-
-        /* Clear form */
-
-        document
-            .getElementById("donorForm")
-            .reset();
-
-
-        /* Update website */
-
-        updateStatistics();
-
-
-        alert(
-            "Registration successful! Your donor details have been added."
-        );
-
-
-        /* Open blood group */
-
-        openGroup(bloodGroup);
-
-    });
+}
 
 
 /* =====================================
@@ -508,32 +852,42 @@ document
 
 function updateStatistics() {
 
-    const donors = getDonors();
+    const donorList =
+        getDonors();
 
 
     const donorCount =
-        document.getElementById("donorCount");
+        document.getElementById(
+            "donorCount"
+        );
+
 
     const availableCount =
-        document.getElementById("availableCount");
+        document.getElementById(
+            "availableCount"
+        );
 
 
     if (donorCount) {
 
         donorCount.textContent =
-            donors.length;
+            donorList.length;
 
     }
 
 
     if (availableCount) {
 
+
         const available =
-            donors.filter(function(donor) {
+            donorList.filter(
+                function(donor) {
 
-                return !donor.recentDonation;
+                    return !donor.recentDonation;
 
-            });
+                }
+            );
+
 
         availableCount.textContent =
             available.length;
@@ -552,10 +906,12 @@ function updateStatistics() {
 
 function updateBloodGroupCounts() {
 
-    const donors = getDonors();
+    const donorList =
+        getDonors();
 
 
     const groups = [
+
         "A+",
         "A-",
         "B+",
@@ -564,23 +920,35 @@ function updateBloodGroupCounts() {
         "AB-",
         "O+",
         "O-"
+
     ];
 
 
     groups.forEach(function(group) {
 
+
         const count =
-            donors.filter(function(donor) {
+            donorList.filter(
+                function(donor) {
 
-                return donor.bloodGroup === group;
+                    return donor.bloodGroup === group;
 
-            }).length;
+                }
+            ).length;
 
 
         const safeGroup =
             group
-                .replace("+", "-positive")
-                .replace("-", "-negative");
+
+                .replace(
+                    "+",
+                    "-positive"
+                )
+
+                .replace(
+                    "-",
+                    "-negative"
+                );
 
 
         const element =
@@ -592,10 +960,17 @@ function updateBloodGroupCounts() {
         if (element) {
 
             element.textContent =
+
                 count +
-                (count === 1
-                    ? " Donor"
-                    : " Donors");
+
+                (
+                    count === 1
+
+                        ? " Donor"
+
+                        : " Donors"
+
+                );
 
         }
 
@@ -612,17 +987,58 @@ function escapeHTML(value) {
 
     return String(value)
 
-        .replace(/&/g, "&amp;")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
 
-        .replace(/</g, "&lt;")
+        .replace(
+            /</g,
+            "&lt;"
+        )
 
-        .replace(/>/g, "&gt;")
+        .replace(
+            />/g,
+            "&gt;"
+        )
 
-        .replace(/"/g, "&quot;")
+        .replace(
+            /"/g,
+            "&quot;"
+        )
 
-        .replace(/'/g, "&#039;");
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
+
+
+/* =====================================
+   MAKE FUNCTIONS AVAILABLE TO HTML
+===================================== */
+
+window.showPage =
+    showPage;
+
+window.toggleMenu =
+    toggleMenu;
+
+window.closeMenu =
+    closeMenu;
+
+window.openGroup =
+    openGroup;
+
+window.findDonors =
+    findDonors;
+
+window.displayDonors =
+    displayDonors;
+
+window.toggleRecent =
+    toggleRecent;
 
 
 /* =====================================
@@ -630,12 +1046,17 @@ function escapeHTML(value) {
 ===================================== */
 
 document.addEventListener(
+
     "DOMContentLoaded",
+
     function() {
 
         updateStatistics();
 
         showPage("home");
 
+        startDonorListener();
+
     }
+
 );
