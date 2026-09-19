@@ -1,22 +1,28 @@
 /* =====================================
-   BLOODCONNECT JAVASCRIPT
-   FIREBASE + FIRESTORE VERSION
+   BLOODCONNECT
+   FIREBASE + FIRESTORE + ADMIN
 ===================================== */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
 import {
     getFirestore,
     collection,
     addDoc,
     updateDoc,
+    deleteDoc,
     doc,
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 import {
     getAuth,
-    signInAnonymously
+    signInAnonymously,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
 
@@ -25,20 +31,27 @@ import {
 ===================================== */
 
 const firebaseConfig = {
-
     apiKey: "AIzaSyCqXUHDHykloy51n8QTzpI59dRsAUjYbfE",
-
     authDomain: "bloodconnect-d72ee.firebaseapp.com",
-
     projectId: "bloodconnect-d72ee",
-
     storageBucket: "bloodconnect-d72ee.firebasestorage.app",
-
     messagingSenderId: "877909200543",
-
     appId: "1:877909200543:web:5ec235063ebaa2c3a65caa"
-
 };
+
+
+/* =====================================
+   ADMIN EMAIL
+===================================== */
+
+/*
+   Replace the text below with the email
+   you created in Firebase Authentication.
+
+   DO NOT put your password here.
+*/
+
+const ADMIN_EMAIL = "ameekhaa1@gmail.com";
 
 
 /* =====================================
@@ -51,14 +64,17 @@ const db = getFirestore(app);
 
 const auth = getAuth(app);
 
-const donorsCollection = collection(db, "donors");
+const donorsCollection =
+    collection(db, "donors");
 
 
 /* =====================================
-   LOCAL MEMORY OF FIRESTORE DATA
+   LOCAL DATA
 ===================================== */
 
 let donors = [];
+
+let isAdmin = false;
 
 
 /* =====================================
@@ -73,16 +89,18 @@ function getDonors() {
 
 
 /* =====================================
-   FIREBASE ANONYMOUS LOGIN
+   START FIREBASE
 ===================================== */
 
 async function startFirebase() {
 
     try {
 
-        await signInAnonymously(auth);
+        if (!auth.currentUser) {
 
-        console.log("Firebase authentication successful.");
+            await signInAnonymously(auth);
+
+        }
 
         startDonorListener();
 
@@ -96,7 +114,7 @@ async function startFirebase() {
         );
 
         alert(
-            "Could not connect to BloodConnect. Please try again."
+            "Could not connect to BloodConnect."
         );
 
     }
@@ -105,7 +123,210 @@ async function startFirebase() {
 
 
 /* =====================================
-   LISTEN FOR DONOR CHANGES
+   AUTHENTICATION STATE
+===================================== */
+
+onAuthStateChanged(
+    auth,
+    function(user) {
+
+        if (user && user.email) {
+
+            isAdmin =
+                user.email.toLowerCase() ===
+                ADMIN_EMAIL.toLowerCase();
+
+        }
+
+        else {
+
+            isAdmin = false;
+
+        }
+
+        updateAdminUI();
+
+        refreshCurrentDonorList();
+
+    }
+);
+
+
+/* =====================================
+   ADMIN LOGIN
+===================================== */
+
+async function adminLogin() {
+
+    const email =
+        prompt("Enter admin email:");
+
+    if (!email) {
+
+        return;
+
+    }
+
+
+    const password =
+        prompt("Enter admin password:");
+
+    if (!password) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await signInWithEmailAndPassword(
+            auth,
+            email.trim(),
+            password
+        );
+
+
+        isAdmin = true;
+
+
+        updateAdminUI();
+
+        refreshCurrentDonorList();
+
+
+        alert(
+            "Admin login successful."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Admin login error:",
+            error
+        );
+
+
+        alert(
+            "Admin login failed. Check your email and password."
+        );
+
+    }
+
+}
+
+
+/* =====================================
+   ADMIN LOGOUT
+===================================== */
+
+async function adminLogout() {
+
+    try {
+
+        await signOut(auth);
+
+        isAdmin = false;
+
+        updateAdminUI();
+
+        refreshCurrentDonorList();
+
+
+        alert(
+            "Admin logged out."
+        );
+
+
+        /*
+         * Sign in anonymously again so normal
+         * website functions continue working.
+         */
+
+        await signInAnonymously(auth);
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Logout error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =====================================
+   ADMIN BUTTON
+===================================== */
+
+function updateAdminUI() {
+
+    let adminButton =
+        document.getElementById(
+            "adminButton"
+        );
+
+
+    if (!adminButton) {
+
+        adminButton =
+            document.createElement("button");
+
+        adminButton.id =
+            "adminButton";
+
+        adminButton.className =
+            "admin-btn";
+
+
+        const nav =
+            document.querySelector(
+                ".navbar nav"
+            );
+
+
+        if (nav) {
+
+            nav.appendChild(
+                adminButton
+            );
+
+        }
+
+    }
+
+
+    if (isAdmin) {
+
+        adminButton.textContent =
+            "Admin Logout";
+
+        adminButton.onclick =
+            adminLogout;
+
+    }
+
+    else {
+
+        adminButton.textContent =
+            "Admin Login";
+
+        adminButton.onclick =
+            adminLogin;
+
+    }
+
+}
+
+
+/* =====================================
+   FIRESTORE LISTENER
 ===================================== */
 
 function startDonorListener() {
@@ -118,78 +339,25 @@ function startDonorListener() {
 
             donors = [];
 
-            snapshot.forEach(function(document) {
 
-                donors.push({
+            snapshot.forEach(
+                function(document) {
 
-                    id: document.id,
+                    donors.push({
 
-                    ...document.data()
+                        id: document.id,
 
-                });
+                        ...document.data()
 
-            });
+                    });
+
+                }
+            );
 
 
             updateStatistics();
 
-
-            /* Refresh currently displayed group */
-
-            const activePage =
-                document.querySelector(".page.active");
-
-
-            if (
-                activePage &&
-                activePage.id === "groups"
-            ) {
-
-                const results =
-                    document.getElementById("groupResults");
-
-                if (
-                    results &&
-                    results.dataset.group
-                ) {
-
-                    displayDonors(
-                        results.dataset.group,
-                        results
-                    );
-
-                }
-
-            }
-
-
-            /* Refresh Find Donor page */
-
-            if (
-                activePage &&
-                activePage.id === "find"
-            ) {
-
-                const results =
-                    document.getElementById("findResults");
-
-                const select =
-                    document.getElementById("findBloodGroup");
-
-                if (
-                    results &&
-                    select &&
-                    select.value
-                ) {
-
-                    displayDonors(
-                        select.value,
-                        results
-                    );
-
-                }
-
-            }
+            refreshCurrentDonorList();
 
         },
 
@@ -208,29 +376,117 @@ function startDonorListener() {
 
 
 /* =====================================
+   REFRESH CURRENT DONOR LIST
+===================================== */
+
+function refreshCurrentDonorList() {
+
+    const activePage =
+        document.querySelector(
+            ".page.active"
+        );
+
+
+    if (!activePage) {
+
+        return;
+
+    }
+
+
+    if (
+        activePage.id === "groups"
+    ) {
+
+        const results =
+            document.getElementById(
+                "groupResults"
+            );
+
+
+        if (
+            results &&
+            results.dataset.group
+        ) {
+
+            displayDonors(
+                results.dataset.group,
+                results
+            );
+
+        }
+
+    }
+
+
+    if (
+        activePage.id === "find"
+    ) {
+
+        const results =
+            document.getElementById(
+                "findResults"
+            );
+
+
+        const select =
+            document.getElementById(
+                "findBloodGroup"
+            );
+
+
+        if (
+            results &&
+            select &&
+            select.value
+        ) {
+
+            displayDonors(
+                select.value,
+                results
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =====================================
    PAGE NAVIGATION
 ===================================== */
 
 function showPage(pageId) {
 
     const pages =
-        document.querySelectorAll(".page");
+        document.querySelectorAll(
+            ".page"
+        );
 
 
-    pages.forEach(function(page) {
+    pages.forEach(
+        function(page) {
 
-        page.classList.remove("active");
+            page.classList.remove(
+                "active"
+            );
 
-    });
+        }
+    );
 
 
     const selectedPage =
-        document.getElementById(pageId);
+        document.getElementById(
+            pageId
+        );
 
 
     if (selectedPage) {
 
-        selectedPage.classList.add("active");
+        selectedPage.classList.add(
+            "active"
+        );
 
     }
 
@@ -259,12 +515,16 @@ function showPage(pageId) {
 function toggleMenu() {
 
     const menu =
-        document.getElementById("mobileMenu");
+        document.getElementById(
+            "mobileMenu"
+        );
 
 
     if (menu) {
 
-        menu.classList.toggle("show");
+        menu.classList.toggle(
+            "show"
+        );
 
     }
 
@@ -274,12 +534,16 @@ function toggleMenu() {
 function closeMenu() {
 
     const menu =
-        document.getElementById("mobileMenu");
+        document.getElementById(
+            "mobileMenu"
+        );
 
 
     if (menu) {
 
-        menu.classList.remove("show");
+        menu.classList.remove(
+            "show"
+        );
 
     }
 
@@ -287,7 +551,7 @@ function closeMenu() {
 
 
 /* =====================================
-   BLOOD GROUP
+   OPEN BLOOD GROUP
 ===================================== */
 
 function openGroup(group) {
@@ -296,12 +560,16 @@ function openGroup(group) {
 
 
     const results =
-        document.getElementById("groupResults");
+        document.getElementById(
+            "groupResults"
+        );
 
 
     if (results) {
 
-        results.dataset.group = group;
+        results.dataset.group =
+            group;
+
 
         displayDonors(
             group,
@@ -320,7 +588,9 @@ function openGroup(group) {
 function findDonors() {
 
     const select =
-        document.getElementById("findBloodGroup");
+        document.getElementById(
+            "findBloodGroup"
+        );
 
 
     const group =
@@ -328,7 +598,9 @@ function findDonors() {
 
 
     const results =
-        document.getElementById("findResults");
+        document.getElementById(
+            "findResults"
+        );
 
 
     if (!group) {
@@ -370,7 +642,10 @@ function findDonors() {
    DISPLAY DONORS
 ===================================== */
 
-function displayDonors(group, container) {
+function displayDonors(
+    group,
+    container
+) {
 
     if (!container) {
 
@@ -379,28 +654,36 @@ function displayDonors(group, container) {
     }
 
 
-    container.dataset.group = group;
+    container.dataset.group =
+        group;
 
 
     const matchingDonors =
-        getDonors().filter(function(donor) {
+        getDonors().filter(
+            function(donor) {
 
-            return donor.bloodGroup === group;
+                return donor.bloodGroup === group;
 
-        });
+            }
+        );
 
 
-    if (matchingDonors.length === 0) {
+    if (
+        matchingDonors.length === 0
+    ) {
 
         container.innerHTML = `
 
             <div class="results-title">
 
                 <h2>
+
                     Donors with
+
                     <span>
                         ${escapeHTML(group)}
                     </span>
+
                 </h2>
 
             </div>
@@ -412,17 +695,20 @@ function displayDonors(group, container) {
                     🩸
                 </div>
 
+
                 <h3>
                     No registered donors yet
                 </h3>
 
+
                 <p>
                     There are currently no donors
-                    registered with blood group
-                    ${escapeHTML(group)}.
+                    registered with this blood group.
                 </p>
 
+
                 <br>
+
 
                 <button
                     class="primary-btn"
@@ -455,9 +741,12 @@ function displayDonors(group, container) {
 
             </h2>
 
+
             <p>
+
                 ${matchingDonors.length}
                 registered donor(s)
+
             </p>
 
         </div>
@@ -468,95 +757,127 @@ function displayDonors(group, container) {
     `;
 
 
-    matchingDonors.forEach(function(donor) {
-
-        const recentClass =
-            donor.recentDonation
-                ? "active"
-                : "";
+    matchingDonors.forEach(
+        function(donor) {
 
 
-        const recentText =
-            donor.recentDonation
-                ? "✓ Donated Recently"
-                : "Mark as Donated Recently";
+            const recentClass =
+                donor.recentDonation
+                    ? "active"
+                    : "";
 
 
-        html += `
+            const recentText =
+                donor.recentDonation
 
-            <div class="donor-card">
+                    ? "✓ Donated Recently"
 
-                <div class="donor-top">
-
-                    <div class="donor-name">
-
-                        ${escapeHTML(
-                            donor.name || ""
-                        )}
-
-                    </div>
-
-                    <div class="blood-tag">
-
-                        ${escapeHTML(
-                            donor.bloodGroup || ""
-                        )}
-
-                    </div>
-
-                </div>
+                    : "Mark as Donated Recently";
 
 
-                <div class="donor-info">
+            html += `
 
-                    <div>
+                <div class="donor-card">
 
-                        📍
 
-                        <strong>
-                            Location:
-                        </strong>
+                    <div class="donor-top">
 
-                        ${escapeHTML(
-                            donor.location || ""
-                        )}
+                        <div class="donor-name">
+
+                            ${escapeHTML(
+                                donor.name || ""
+                            )}
+
+                        </div>
+
+
+                        <div class="blood-tag">
+
+                            ${escapeHTML(
+                                donor.bloodGroup || ""
+                            )}
+
+                        </div>
 
                     </div>
 
 
-                    <div>
+                    <div class="donor-info">
 
-                        📞
 
-                        <strong>
-                            Phone:
-                        </strong>
+                        <div>
 
-                        ${escapeHTML(
-                            donor.phone || ""
-                        )}
+                            📍
+
+                            <strong>
+                                Location:
+                            </strong>
+
+                            ${escapeHTML(
+                                donor.location || ""
+                            )}
+
+                        </div>
+
+
+                        <div>
+
+                            📞
+
+                            <strong>
+                                Phone:
+                            </strong>
+
+                            ${escapeHTML(
+                                donor.phone || ""
+                            )}
+
+                        </div>
+
+
+                        ${
+                            donor.lastDonation
+
+                            ?
+
+                            `
+
+                            <div>
+
+                                📅
+
+                                <strong>
+                                    Last donation:
+                                </strong>
+
+                                ${escapeHTML(
+                                    donor.lastDonation
+                                )}
+
+                            </div>
+
+                            `
+
+                            :
+
+                            ""
+
+                        }
 
                     </div>
 
 
                     ${
-                        donor.lastDonation
+                        donor.recentDonation
 
                         ?
 
                         `
 
-                        <div>
+                        <div class="form-note">
 
-                            📅
-
-                            <strong>
-                                Last donation:
-                            </strong>
-
-                            ${escapeHTML(
-                                donor.lastDonation
-                            )}
+                            This donor marked themselves
+                            as having donated recently.
 
                         </div>
 
@@ -568,71 +889,167 @@ function displayDonors(group, container) {
 
                     }
 
-                </div>
+
+                    <div class="donor-actions">
 
 
-                ${
-                    donor.recentDonation
+                        <a
 
-                    ?
+                            class="call-btn"
 
-                    `
+                            href="tel:${escapeHTML(
+                                donor.phone || ""
+                            )}">
 
-                    <div class="form-note">
+                            📞 Call Donor
 
-                        This donor marked themselves
-                        as having donated recently.
+                        </a>
+
+
+                        <button
+
+                            class="recent-btn ${recentClass}"
+
+                            onclick="toggleRecent(
+                                '${donor.id}'
+                            )">
+
+                            ${recentText}
+
+                        </button>
+
+
+                        ${
+                            isAdmin
+
+                            ?
+
+                            `
+
+                            <button
+
+                                class="recent-btn"
+
+                                style="
+                                    background:#8b0000;
+                                    color:white;
+                                "
+
+                                onclick="deleteDonor(
+                                    '${donor.id}'
+                                )">
+
+                                ✕ Remove
+
+                            </button>
+
+                            `
+
+                            :
+
+                            ""
+
+                        }
 
                     </div>
 
-                    `
-
-                    :
-
-                    ""
-
-                }
-
-
-                <div class="donor-actions">
-
-                    <a
-                        class="call-btn"
-                        href="tel:${escapeHTML(
-                            donor.phone || ""
-                        )}">
-
-                        📞 Call Donor
-
-                    </a>
-
-
-                    <button
-
-                        class="recent-btn ${recentClass}"
-
-                        onclick="toggleRecent(
-                            '${donor.id}',
-                            '${escapeHTML(group)}'
-                        )">
-
-                        ${recentText}
-
-                    </button>
 
                 </div>
 
-            </div>
+            `;
 
-        `;
-
-    });
+        }
+    );
 
 
     html += `</div>`;
 
 
-    container.innerHTML = html;
+    container.innerHTML =
+        html;
+
+}
+
+
+/* =====================================
+   DELETE DONOR
+===================================== */
+
+async function deleteDonor(id) {
+
+    if (!isAdmin) {
+
+        alert(
+            "Admin access required."
+        );
+
+        return;
+
+    }
+
+
+    const donor =
+        getDonors().find(
+            function(item) {
+
+                return item.id === id;
+
+            }
+        );
+
+
+    if (!donor) {
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to remove this donor?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await deleteDoc(
+
+            doc(
+                db,
+                "donors",
+                id
+            )
+
+        );
+
+
+        alert(
+            "Donor removed successfully."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Delete error:",
+            error
+        );
+
+
+        alert(
+            "Could not remove this donor."
+        );
+
+    }
 
 }
 
@@ -641,14 +1058,16 @@ function displayDonors(group, container) {
    TOGGLE RECENT DONATION
 ===================================== */
 
-async function toggleRecent(id, group) {
+async function toggleRecent(id) {
 
     const donor =
-        getDonors().find(function(item) {
+        getDonors().find(
+            function(item) {
 
-            return item.id === id;
+                return item.id === id;
 
-        });
+            }
+        );
 
 
     if (!donor) {
@@ -700,16 +1119,23 @@ async function toggleRecent(id, group) {
    REGISTER DONOR
 ===================================== */
 
-const donorForm =
-    document.getElementById("donorForm");
+function setupDonorForm() {
+
+    const donorForm =
+        document.getElementById(
+            "donorForm"
+        );
 
 
-if (donorForm) {
+    if (!donorForm) {
+
+        return;
+
+    }
+
 
     donorForm.addEventListener(
-
         "submit",
-
         async function(event) {
 
             event.preventDefault();
@@ -780,9 +1206,11 @@ if (donorForm) {
 
                 location: location,
 
-                lastDonation: lastDonation,
+                lastDonation:
+                    lastDonation,
 
-                recentDonation: recentDonation
+                recentDonation:
+                    recentDonation
 
             };
 
@@ -790,11 +1218,8 @@ if (donorForm) {
             try {
 
                 await addDoc(
-
                     donorsCollection,
-
                     newDonor
-
                 );
 
 
@@ -802,8 +1227,7 @@ if (donorForm) {
 
 
                 alert(
-                    "Registration successful! " +
-                    "Your donor details have been added."
+                    "Registration successful!"
                 );
 
 
@@ -822,14 +1246,12 @@ if (donorForm) {
 
 
                 alert(
-                    "Registration failed. " +
-                    "Please try again."
+                    "Registration failed. Please try again."
                 );
 
             }
 
         }
-
     );
 
 }
@@ -894,10 +1316,6 @@ function updateStatistics() {
 
 function updateBloodGroupCounts() {
 
-    const donorList =
-        getDonors();
-
-
     const groups = [
 
         "A+",
@@ -912,45 +1330,58 @@ function updateBloodGroupCounts() {
     ];
 
 
-    groups.forEach(function(group) {
+    groups.forEach(
+        function(group) {
 
-        const count =
-            donorList.filter(
-                function(donor) {
+            const count =
+                getDonors().filter(
+                    function(donor) {
 
-                    return donor.bloodGroup === group;
+                        return donor.bloodGroup === group;
 
-                }
-            ).length;
-
-
-        const safeGroup =
-            group
-                .replace("+", "-positive")
-                .replace("-", "-negative");
+                    }
+                ).length;
 
 
-        const element =
-            document.getElementById(
-                "count-" + safeGroup
-            );
+            const safeGroup =
+                group
+
+                    .replace(
+                        "+",
+                        "-positive"
+                    )
+
+                    .replace(
+                        "-",
+                        "-negative"
+                    );
 
 
-        if (element) {
-
-            element.textContent =
-
-                count +
-
-                (
-                    count === 1
-                        ? " Donor"
-                        : " Donors"
+            const element =
+                document.getElementById(
+                    "count-" + safeGroup
                 );
 
-        }
 
-    });
+            if (element) {
+
+                element.textContent =
+
+                    count +
+
+                    (
+                        count === 1
+
+                            ? " Donor"
+
+                            : " Donors"
+
+                    );
+
+            }
+
+        }
+    );
 
 }
 
@@ -963,15 +1394,30 @@ function escapeHTML(value) {
 
     return String(value)
 
-        .replace(/&/g, "&amp;")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
 
-        .replace(/</g, "&lt;")
+        .replace(
+            /</g,
+            "&lt;"
+        )
 
-        .replace(/>/g, "&gt;")
+        .replace(
+            />/g,
+            "&gt;"
+        )
 
-        .replace(/"/g, "&quot;")
+        .replace(
+            /"/g,
+            "&quot;"
+        )
 
-        .replace(/'/g, "&#039;");
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
@@ -1001,23 +1447,33 @@ window.displayDonors =
 window.toggleRecent =
     toggleRecent;
 
+window.deleteDonor =
+    deleteDonor;
+
+window.adminLogin =
+    adminLogin;
+
+window.adminLogout =
+    adminLogout;
+
 
 /* =====================================
    START WEBSITE
 ===================================== */
 
 document.addEventListener(
-
     "DOMContentLoaded",
-
     function() {
 
         updateStatistics();
 
         showPage("home");
 
+        setupDonorForm();
+
+        updateAdminUI();
+
         startFirebase();
 
     }
-
 );
